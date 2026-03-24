@@ -191,7 +191,7 @@
             
             <div id="start-overlay" onclick="iniciarAbertura()">
                 <button class="bg-red-600 hover:bg-red-500 text-white font-pixel text-[10px] md:text-sm py-4 px-8 rounded-full border-4 border-white shadow-lg animate-pulse transition-transform hover:scale-105 pointer-events-none">
-                    ▶ INICIAR ABERTURA
+                    ▶ CLIQUE OU APERTE [ENTER]
                 </button>
             </div>
 
@@ -336,6 +336,7 @@
                 <div class="overflow-hidden">
                     <h3 class="font-pixel text-[8px] md:text-[10px] text-gray-400 mb-4 uppercase tracking-widest border-b border-gray-100 pb-2 overflow-hidden">Mensagens Recentes</h3>
                     <div id="lista-recados" class="space-y-4 max-h-80 overflow-y-auto pr-2 scrollbar-custom overflow-hidden">
+                        
                         <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
                             <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1 overflow-hidden">Vovó e Vovô</p>
@@ -462,14 +463,13 @@
 
         const keys = {};
 
-        // === FORÇA O ÁUDIO A TOCAR AO CLICAR NO BOTÃO VIA JAVASCRIPT ===
+        // === INICIA A ABERTURA (Click ou ENTER) ===
         window.iniciarAbertura = function() {
             document.getElementById('start-overlay').style.display = 'none';
             gameState = 'SHOOTING_STAR';
-            hudStatus.innerText = 'ABERTURA';
+            if(hudStatus) hudStatus.innerText = 'ABERTURA';
             
             if(introAudio) {
-                // Força o play no evento de clique
                 introAudio.volume = 0.5;
                 let playPromise = introAudio.play();
                 if(playPromise !== undefined) {
@@ -478,9 +478,13 @@
             }
         };
 
+        // Agora a tecla Enter inicia a abertura também!
         window.addEventListener('keydown', e => {
             keys[e.key] = true;
-            if (gameState === 'TITLE_SCREEN' && (e.key === 'Enter' || e.key === 'z')) {
+            
+            if (gameState === 'WAIT_CLICK' && (e.key === 'Enter' || e.key === 'z')) {
+                iniciarAbertura();
+            } else if (gameState === 'TITLE_SCREEN' && (e.key === 'Enter' || e.key === 'z')) {
                 startGame();
             } else if (gameState === 'PLAYING' && (e.key === 'Enter' || e.key === 'z') && !player.moving) {
                 simulateInteraction();
@@ -628,11 +632,11 @@
             ctx.arc(0, -22 * scale + bounce, 5 * scale, 0, Math.PI * 2);
             ctx.fill();
 
-            // Boné de Treinadora (Estilo Ash)
+            // Boné de Treinadora
             ctx.beginPath();
-            ctx.arc(0, -23 * scale + bounce, 5 * scale, Math.PI, 0); // topo do boné
+            ctx.arc(0, -23 * scale + bounce, 5 * scale, Math.PI, 0); 
             ctx.fill();
-            ctx.fillRect(0, -23 * scale + bounce, 8 * scale, 2 * scale); // aba do boné
+            ctx.fillRect(0, -23 * scale + bounce, 8 * scale, 2 * scale); 
 
             // Vestido / Barriga
             ctx.beginPath();
@@ -666,7 +670,7 @@
 
             ctx.restore();
 
-            // --- COMPANHEIRO BABY (Mini Pikachu/Pokémon) ---
+            // --- Mini Pikachu/Pokémon ---
             let compX = x - 30 * scale; 
             let compBounce = isWalking ? Math.sin(globalFrame * 0.5) * 3 * scale : 0;
             
@@ -674,15 +678,13 @@
             ctx.translate(compX, y);
             if(direction === 'left') {
                 ctx.scale(-1, 1);
-                ctx.translate(-60 * scale, 0); // Ajuste se for pra esquerda
+                ctx.translate(-60 * scale, 0); 
             }
             
             ctx.fillStyle = '#000';
-            // Corpo baby
             ctx.beginPath();
             ctx.ellipse(0, 20 * scale + compBounce, 6 * scale, 6 * scale, 0, 0, Math.PI*2);
             ctx.fill();
-            // Orelhas Pikachu
             ctx.beginPath();
             ctx.moveTo(-2 * scale, 15 * scale + compBounce);
             ctx.lineTo(-8 * scale, 5 * scale + compBounce);
