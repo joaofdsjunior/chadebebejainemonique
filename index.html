@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chá de Bebê da Jaine-Monique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+        :root {
+            --fire-red: #ff3e3e;
+            --torchic-orange: #ff7f00;
+            --dialog-bg: #ffffff;
+            --dialog-border: #4a5568;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #202025;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                              url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGTss5n9fZ5vHY1ufnb3I4J0p9uhr82AvvQKsTonnmIHlDlbDmejecqkOKS0EwOUnPuxVleK-BJi0O-bBQ7ghJ58ULMQA8oUEeFq3KXNu84wH4oLedJyWOjGHpkjix9YAE4H4HgvVeqvg/s960/pokemon_ruby_sapphire_anniversary_03.png');
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .font-pixel { font-family: 'Press Start 2P', cursive; }
+        .font-sans-readable { font-family: system-ui, -apple-system, sans-serif; }
+
+        /* --- GAME ENGINE STYLES --- */
+        #game-section {
+            width: 100%;
+            background: #000;
+            border-bottom: 4px solid #ff3e3e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        #game-container {
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            width: 100%;
+            max-width: 960px;
+            aspect-ratio: 3 / 1; /* Garante a proporção correta sempre */
+            background-color: #202025;
+            object-fit: contain;
+        }
+
+        /* Dialog Box Style */
+        #game-dialogue {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            min-height: 80px;
+            background: white;
+            border: 4px solid #4a5568;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #333;
+            display: none;
+            z-index: 20;
+            line-height: 1.6;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        /* --- MOBILE CONTROLS (Abaixo do Canvas para não atrapalhar o site) --- */
+        .mobile-controls-wrapper {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111;
+            border-top: 2px solid #333;
+        }
+
+        .d-pad {
+            display: grid;
+            grid-template-columns: 45px 45px 45px;
+            grid-template-rows: 45px 45px 45px;
+            gap: 4px;
+        }
+        
+        .d-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            user-select: none;
+            cursor: pointer;
+        }
+        .d-btn:active { background: rgba(255, 255, 255, 0.4); }
+        .d-up { grid-column: 2; grid-row: 1; }
+        .d-left { grid-column: 1; grid-row: 2; }
+        .d-right { grid-column: 3; grid-row: 2; }
+        .d-down { grid-column: 2; grid-row: 3; }
+        
+        .d-action {
+            background: #ff3e3e; 
+            color: white;
+            border-radius: 50%;
+            width: 65px; height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-family: 'Press Start 2P', cursive;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            user-select: none;
+            cursor: pointer;
+        }
+        .d-action:active { transform: scale(0.95); }
+
+        @media (max-width: 768px) {
+            .mobile-controls-wrapper {
+                display: flex; /* Mostra os controles apenas no celular */
+            }
+            canvas {
+                height: auto; /* Deixa a altura se ajustar automaticamente à proporção */
+            }
+            #game-dialogue {
+                bottom: 10px; /* Ajusta o diálogo no celular */
+                font-size: 8px; /* Fonte ligeiramente menor no celular */
+            }
+        }
+
+        /* Estilo das Caixas de Informação */
+        .gba-box {
+            background: #fff;
+            border: 4px solid #4a5568;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.3);
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        /* Scrollbar customizada para os recados */
+        .scrollbar-custom::-webkit-scrollbar { width: 6px; }
+        .scrollbar-custom::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .scrollbar-custom::-webkit-scrollbar-thumb { background: #f472b6; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+
+    <nav class="w-full bg-slate-900 text-white sticky top-0 z-50 py-3 px-4 md:px-6 shadow-xl border-b-4 border-slate-700">
+        <div class="w-full flex justify-between items-center max-w-5xl mx-auto">
+            <div class="flex items-center gap-2 md:gap-3">
+                <div class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-red-600 border-2 border-white flex items-center justify-center text-[8px] font-bold">♥</div>
+                <div class="font-pixel text-[8px] md:text-[10px] text-orange-400 tracking-widest">CHÁ DA JAINE-MONIQUE</div>
+            </div>
+            <div class="font-pixel text-[8px] hidden md:flex gap-6">
+                <span class="text-gray-400">STATUS: <span class="text-white">CARREGANDO BEBÊ...</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section id="game-section">
+        <div id="game-container">
+            <canvas id="gameCanvas" width="480" height="160"></canvas>
+            
+            <div id="game-dialogue">
+                <span class="block text-red-600 text-[8px] mb-2 border-b border-gray-300 pb-1 font-bold" id="quest-title">MENSAGEM</span>
+                <p id="dialogue-text"></p>
+                <div class="absolute bottom-2 right-2 text-red-500 animate-bounce">▼</div>
+            </div>
+
+            <div class="absolute top-4 right-4 bg-black/60 text-white p-3 rounded hidden md:block font-pixel text-[8px] border border-gray-600">
+                USE AS SETAS PARA ANDAR<br><br>APERTE [ENTER] PARA LER AS PLACAS
+            </div>
+        </div>
+
+        <div class="mobile-controls-wrapper">
+            <div class="d-pad">
+                <div class="d-btn d-up" ontouchstart="simulateKey('ArrowUp', true)" ontouchend="simulateKey('ArrowUp', false)">▲</div>
+                <div class="d-btn d-left" ontouchstart="simulateKey('ArrowLeft', true)" ontouchend="simulateKey('ArrowLeft', false)">◀</div>
+                <div class="d-btn d-right" ontouchstart="simulateKey('ArrowRight', true)" ontouchend="simulateKey('ArrowRight', false)">▶</div>
+                <div class="d-btn d-down" ontouchstart="simulateKey('ArrowDown', true)" ontouchend="simulateKey('ArrowDown', false)">▼</div>
+            </div>
+            <div class="d-action" onclick="simulateInteraction()" ontouchstart="simulateInteraction()">A</div>
+        </div>
+    </section>
+
+    <main class="max-w-4xl w-full px-4 py-8 md:py-12 relative z-10">
+        
+        <div class="bg-black/80 text-center p-5 md:p-10 rounded-xl mb-12 border-2 border-orange-500 shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-orange-900/20 to-transparent"></div>
+            
+            <div class="relative z-10">
+                <p class="text-orange-400 font-bold mb-2 font-sans-readable text-xs md:text-sm uppercase tracking-wider">
+                    Contagem regressiva para a chegada da bebê (22/06):
+                </p>
+                
+                <div id="countdown-timer" class="text-white text-xl md:text-4xl font-pixel mb-6 mt-2 drop-shadow-md">
+                    </div>
+                
+                <h1 class="text-3xl md:text-6xl font-black text-white mb-4 mt-4 md:mt-6 uppercase tracking-wide drop-shadow-lg" style="font-family: system-ui, sans-serif;">
+                    Chá de Bebê da<br><span class="text-orange-500">Jaine-Monique</span>
+                </h1>
+                
+                <p class="text-lg md:text-2xl text-gray-200 italic mb-4 font-sans-readable font-medium">
+                    Fraldas, mamadeiras, muito amor e alegria nos aguardam!
+                </p>
+                <p class="text-xs md:text-base text-gray-400 mb-8 font-sans-readable">
+                    (a aventura começa na Rua Pau do Café, 917)
+                </p>
+                
+                <div class="flex flex-col md:flex-row gap-4 justify-center mt-6">
+                    <a href="https://chat.whatsapp.com/BeGr4z3pDeDL48q4DXl16a" target="_blank" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3 md:py-4 px-6 rounded-full text-xs md:text-lg transition-transform hover:scale-105 shadow-lg font-sans-readable uppercase tracking-wide">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        Grupo do WhatsApp
+                    </a>
+                    <a href="#mensagens" class="inline-flex items-center justify-center gap-2 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 md:py-4 px-6 rounded-full text-xs md:text-lg transition-transform hover:scale-105 shadow-lg font-sans-readable uppercase tracking-wide">
+                        💌 Deixe um Recadinho!
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <section id="mapa" class="scroll-mt-24 grid md:grid-cols-[1fr_200px] gap-6 md:gap-8 items-start mb-12">
+            <div class="gba-box border-l-[6px] md:border-l-[8px] border-l-orange-500">
+                <h2 class="font-pixel text-xs md:text-sm text-orange-600 mb-4 md:mb-6 uppercase border-b-2 border-orange-100 pb-2">
+                    📍 Onde e Quando
+                </h2>
+                <div class="space-y-4">
+                    <p class="font-bold text-xl md:text-2xl text-gray-800 font-sans-readable">Local: Salão do Prédio</p>
+                    <p class="font-retro text-xl md:text-2xl text-gray-700 leading-relaxed">
+                        <strong class="text-orange-600">Endereço:</strong> Rua Pau do Café, 917 - Diadema<br>
+                        <strong class="text-orange-600">Horário:</strong> A partir das 16h30
+                    </p>
+                    <p class="text-gray-500 text-sm md:text-lg font-sans-readable mt-2">
+                        Venha celebrar com a gente! Preparamos tudo com muito carinho para receber nossa família e amigos.
+                    </p>
+                </div>
+            </div>
+            <div class="hidden md:flex justify-center items-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/255.gif" alt="Torchic" class="w-24 md:w-32 opacity-90 drop-shadow-md rendering-pixelated" style="image-rendering: pixelated;">
+            </div>
+        </section>
+
+        <section id="bag" class="scroll-mt-24 mb-12">
+            <div class="gba-box border-l-[6px] md:border-l-[8px] border-l-blue-500">
+                <h2 class="font-pixel text-xs md:text-sm text-blue-600 mb-4 md:mb-6 uppercase border-b-2 border-blue-100 pb-2">
+                    🎁 Lista de Presentes
+                </h2>
+                <p class="font-retro text-xl md:text-2xl text-gray-600 mb-6 md:mb-8 leading-relaxed">
+                    Sua presença é o nosso maior presente! Mas se quiser mimar a pequena, criamos duas listas oficiais com as nossas escolhas:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    
+                    <a href="#" target="_blank" class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FF9900] transition-colors shadow-sm text-center flex flex-col items-center">
+                        <div class="h-12 md:h-14 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" class="h-6 md:h-8 object-contain">
+                        </div>
+                        <h3 class="font-bold text-lg md:text-xl text-gray-800 mb-2 font-sans-readable">Lista na Amazon</h3>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed font-sans-readable mb-6">Itens essenciais, roupinhas e utilidades com opções de entrega rápida.</p>
+                        <span class="inline-block bg-[#FF9900] text-black px-5 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold font-sans-readable uppercase shadow-sm">Acessar Lista</span>
+                    </a>
+
+                    <a href="#" target="_blank" class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FFE600] transition-colors shadow-sm text-center flex flex-col items-center">
+                        <div class="h-12 md:h-14 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform bg-[#FFE600] rounded-full w-14 h-14 md:w-16 md:h-16 shadow-inner">
+                            <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolivre/logo__small@2x.png" alt="Mercado Livre" class="h-8 md:h-10 object-contain">
+                        </div>
+                        <h3 class="font-bold text-lg md:text-xl text-[#2D3277] mb-2 font-sans-readable">Lista no Mercado Livre</h3>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed font-sans-readable mb-6">Fraldas, itens de higiene e opções variadas para a bebê.</p>
+                        <span class="inline-block bg-[#FFE600] text-[#2D3277] px-5 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold font-sans-readable uppercase shadow-sm">Acessar Lista</span>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="mensagens" class="scroll-mt-24 pb-12">
+            <div class="gba-box border-l-[6px] md:border-l-[8px] border-l-pink-500 bg-white">
+                <h2 class="font-pixel text-xs md:text-sm text-pink-600 mb-4 uppercase border-b-2 border-pink-100 pb-2">
+                    💌 Mural de Carinho
+                </h2>
+                
+                <p class="font-retro text-xl md:text-2xl text-gray-600 mb-6 md:mb-8 leading-relaxed">
+                    Deixe um recadinho! Essas palavras serão guardadas com muito carinho e amor na memória da família.
+                </p>
+
+                <form id="form-recado" class="bg-pink-50/50 p-4 md:p-6 rounded-xl border border-pink-200 mb-8">
+                    <div class="mb-4">
+                        <label class="block text-pink-900 font-bold mb-2 font-sans-readable text-xs md:text-sm uppercase tracking-wide" for="nome">Quem está enviando?</label>
+                        <input type="text" id="nome" required class="w-full p-3 rounded-lg border border-pink-300 font-sans-readable focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm" placeholder="Seu nome ou apelido carinhoso...">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-pink-900 font-bold mb-2 font-sans-readable text-xs md:text-sm uppercase tracking-wide" for="mensagem">Qual carinho quer escrever para Jaine e Monique?</label>
+                        <textarea id="mensagem" required rows="4" class="w-full p-3 rounded-lg border border-pink-300 font-sans-readable focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm" placeholder="Escreva aqui seus desejos para a bebê e para a mamãe..."></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 md:px-8 rounded-full transition-transform hover:scale-105 shadow-md font-sans-readable uppercase tracking-wide w-full md:w-auto text-sm md:text-base">
+                            Enviar Recadinho 💖
+                        </button>
+                    </div>
+                </form>
+
+                <div>
+                    <h3 class="font-pixel text-[8px] md:text-[10px] text-gray-400 mb-4 uppercase tracking-widest border-b border-gray-100 pb-2">Mensagens Recentes</h3>
+                    <div id="lista-recados" class="space-y-4 max-h-80 overflow-y-auto pr-2 scrollbar-custom">
+                        
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
+                            <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1">Vovó e Vovô</p>
+                            <p class="text-sm md:text-base text-gray-600 font-sans-readable">Estamos contando os minutos para conhecer nosso pacotinho de amor. Que a Monique venha com muita saúde para alegrar nossas vidas!</p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
+                            <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1">Titios Corujas</p>
+                            <p class="text-sm md:text-base text-gray-600 font-sans-readable">Jaine, você será uma mãe incrível! Já compramos várias roupinhas para essa princesa maravilhosa.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full py-8 text-center bg-black text-gray-500 font-pixel text-[6px] md:text-[8px] border-t border-gray-800 px-4">
+        DESENVOLVIDO COM CARINHO PARA A JAINE-MONIQUE E FAMÍLIA • 2026
+    </footer>
+
+    <script>
+        // --- CONTAGEM REGRESSIVA ---
+        function updateCountdown() {
+            const target = new Date('June 22, 2026 00:00:00').getTime();
+            const now = new Date().getTime();
+            const diff = target - now;
+            const container = document.getElementById('countdown-timer');
+
+            if (diff <= 0) {
+                container.innerHTML = '<span class="text-green-400">A BEBÊ CHEGOU!</span>';
+                return;
+            }
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            container.innerHTML = `${d} DIAS e ${h} HORAS`;
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000 * 60 * 60);
+
+        // --- SISTEMA DE RECADOS (FRONT-END) ---
+        const formRecado = document.getElementById('form-recado');
+        const listaRecados = document.getElementById('lista-recados');
+
+        if (formRecado) {
+            formRecado.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                
+                const nome = document.getElementById('nome').value;
+                const mensagem = document.getElementById('mensagem').value;
+
+                const novoCard = document.createElement('div');
+                novoCard.className = 'bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden animate-pulse mt-4';
+                novoCard.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
+                    <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1">${nome}</p>
+                    <p class="text-sm md:text-base text-gray-600 font-sans-readable">${mensagem}</p>
+                `;
+
+                listaRecados.prepend(novoCard);
+
+                setTimeout(() => {
+                    novoCard.classList.remove('animate-pulse');
+                }, 1000);
+
+                formRecado.reset();
+            });
+        }
+
+        /* --- ENGINE RPG --- */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const dialogueBox = document.getElementById('game-dialogue');
+        const dialogueText = document.getElementById('dialogue-text');
+        const questTitle = document.getElementById('quest-title');
+
+        const TILE = 16;
+        const COLS = 30; 
+        const ROWS = 10; 
+
+        // 0=Chão, 1=Árvore, 2=NPC Presentes, 3=Placa, 4=NPC Recados, 5=Água
+        const map = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,1], 
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        const player = { x: 14, y: 5, color: '#ff7f00', dir: 'down', moving: false };
+        let isDialogueOpen = false;
+        let globalFrame = 0;
+
+        const interactions = {
+            "3,3": { 
+                title: "PRESENTES",
+                text: "NPC: 'Oi! Já viu as nossas listas oficiais? Tem Amazon e Mercado Livre ali embaixo!'", 
+                action: "#bag" 
+            },
+            "12,5": { 
+                title: "ENDEREÇO",
+                text: "PLACA: 'Bem-vindos! O Chá de Bebê será na Rua Pau do Café, 917. Desça a tela para ver.'", 
+                action: "#mapa" 
+            },
+            "22,5": { 
+                title: "RECADOS",
+                text: "AMIGA: 'Oi! Já deixou seu recadinho de amor para a Jaine e a Monique lerem? O mural fica ali embaixo!'", 
+                action: "#mensagens" 
+            }
+        };
+
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if((e.key === 'Enter' || e.key === 'z') && !player.moving) {
+                if(isDialogueOpen) closeDialogue();
+                else checkInteraction();
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        function simulateKey(key, state) { keys[key] = state; }
+        function simulateInteraction() {
+            if(isDialogueOpen) closeDialogue();
+            else checkInteraction();
+        }
+
+        function update() {
+            globalFrame++;
+            if (isDialogueOpen || player.moving) return;
+
+            let dx = 0, dy = 0;
+            if (keys['ArrowUp']) { dy = -1; player.dir = 'up'; }
+            else if (keys['ArrowDown']) { dy = 1; player.dir = 'down'; }
+            else if (keys['ArrowLeft']) { dx = -1; player.dir = 'left'; }
+            else if (keys['ArrowRight']) { dx = 1; player.dir = 'right'; }
+
+            if (dx !== 0 || dy !== 0) {
+                const targetX = player.x + dx;
+                const targetY = player.y + dy;
+                if (map[targetY] && map[targetY][targetX] === 0) {
+                    player.x = targetX;
+                    player.y = targetY;
+                    player.moving = true;
+                    setTimeout(() => player.moving = false, 120); 
+                }
+            }
+        }
+
+        function checkInteraction() {
+            let tx = player.x, ty = player.y;
+            if (player.dir === 'up') ty--;
+            if (player.dir === 'down') ty++;
+            if (player.dir === 'left') tx--;
+            if (player.dir === 'right') tx++;
+
+            const key = `${tx},${ty}`;
+            if (interactions[key]) {
+                showDialogue(interactions[key]);
+            }
+        }
+
+        let currentAction = null;
+        function showDialogue(data) {
+            isDialogueOpen = true;
+            dialogueBox.style.display = 'block';
+            dialogueText.innerHTML = "";
+            questTitle.innerText = data.title;
+            currentAction = data.action;
+            
+            let i = 0;
+            function type() {
+                if (i < data.text.length) {
+                    dialogueText.innerHTML += data.text.charAt(i);
+                    i++;
+                    setTimeout(type, 15);
+                }
+            }
+            type();
+        }
+
+        function closeDialogue() {
+            isDialogueOpen = false;
+            dialogueBox.style.display = 'none';
+            if (currentAction) {
+                const el = document.querySelector(currentAction);
+                if(el) el.scrollIntoView({ behavior: 'smooth' });
+                currentAction = null;
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#202025';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    const tile = map[y][x];
+                    const px = x * TILE;
+                    const py = y * TILE;
+
+                    if (tile === 0) {
+                        ctx.fillStyle = '#fce7c6'; 
+                        ctx.fillRect(px, py, TILE, TILE);
+                        if ((x + y) % 3 === 0) {
+                             ctx.fillStyle = 'rgba(0,0,0,0.03)';
+                             ctx.fillRect(px + 4, py + 4, 2, 2);
+                        }
+                    } 
+                    else if (tile === 1) {
+                        ctx.fillStyle = '#1e3a29'; 
+                        ctx.fillRect(px, py, TILE, TILE);
+                        ctx.fillStyle = '#2f855a'; 
+                        ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+                        ctx.fillStyle = '#48bb78'; 
+                        ctx.fillRect(px + 4, py + 4, 4, 4);
+                    }
+                    else if (tile === 5) {
+                        ctx.fillStyle = '#3b82f6';
+                        ctx.fillRect(px, py, TILE, TILE);
+                        if (Math.floor(globalFrame / 30) % 2 === 0) {
+                            ctx.fillStyle = '#93c5fd'; ctx.fillRect(px + 2, py + 4, 6, 2);
+                        } else {
+                            ctx.fillStyle = '#93c5fd'; ctx.fillRect(px + 8, py + 10, 6, 2);
+                        }
+                    }
+                    else if ([2, 3, 4].includes(tile)) {
+                        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                        ctx.beginPath(); ctx.ellipse(px + 8, py + 14, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+                        if (tile === 2) ctx.fillStyle = '#3b82f6'; 
+                        if (tile === 3) ctx.fillStyle = '#b45309'; 
+                        if (tile === 4) ctx.fillStyle = '#ec4899'; 
+
+                        if (tile === 3) {
+                             ctx.fillRect(px + 2, py + 2, 12, 10);
+                             ctx.fillStyle = '#000'; ctx.fillRect(px + 6, py + 12, 4, 4);
+                        } else {
+                             ctx.fillRect(px + 3, py + 2, 10, 12);
+                             ctx.fillStyle = '#fff'; ctx.fillRect(px+4, py+5, 2, 2); ctx.fillRect(px+9, py+5, 2, 2);
+                        }
+
+                        const floatY = Math.sin(globalFrame / 15) * 2;
+                        if (tile === 4) { ctx.fillStyle = '#ec4899'; } else { ctx.fillStyle = '#10b981'; }
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(px + 8, py - 6 + floatY);
+                        ctx.lineTo(px + 5, py - 10 + floatY);
+                        ctx.lineTo(px + 11, py - 10 + floatY);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            const px = player.x * TILE;
+            const py = player.y * TILE;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath(); 
+            ctx.ellipse(px + 8, py + 14, 6, 3, 0, 0, Math.PI * 2); 
+            ctx.fill();
+
+            ctx.fillStyle = player.color;
+            ctx.fillRect(px + 3, py + 4, 10, 10);
+
+            ctx.fillStyle = '#ef4444'; 
+            ctx.fillRect(px + 3, py + 1, 10, 4); 
+            ctx.fillRect(px + 6, py - 2, 4, 3); 
+
+            ctx.fillStyle = '#fff'; 
+            if(player.dir === 'right') { 
+                ctx.fillRect(px + 8, py + 6, 3, 3); 
+                ctx.fillStyle='#000'; ctx.fillRect(px + 10, py + 7, 1, 1); 
+            } else if(player.dir === 'left') { 
+                ctx.fillRect(px + 5, py + 6, 3, 3); 
+                ctx.fillStyle='#000'; ctx.fillRect(px + 5, py + 7, 1, 1); 
+            } else { 
+                ctx.fillRect(px + 4, py + 6, 2, 2); ctx.fillRect(px + 10, py + 6, 2, 2);
+                ctx.fillStyle='#000'; ctx.fillRect(px + 5, py + 6, 1, 1); ctx.fillRect(px + 10, py + 6, 1, 1);
+            }
+            
+            ctx.fillStyle = '#facc15';
+            if(player.dir === 'down') ctx.fillRect(px + 7, py + 9, 2, 2);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
