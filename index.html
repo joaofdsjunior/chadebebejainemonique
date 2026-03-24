@@ -62,7 +62,7 @@
         #start-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -172,7 +172,7 @@
 </head>
 <body class="flex flex-col items-center">
 
-    <audio id="introAudio" src="intro.mp3" preload="auto"></audio>
+    <audio id="introAudio" src="./intro.mp3" preload="auto"></audio>
 
     <nav class="w-full bg-slate-900 text-white sticky top-0 z-50 py-3 px-4 md:px-6 shadow-xl border-b-4 border-slate-700">
         <div class="w-full flex justify-between items-center max-w-5xl mx-auto">
@@ -181,7 +181,7 @@
                 <div class="font-pixel text-[8px] md:text-[10px] text-orange-400 tracking-widest">CHÁ DA JAINE-MONIQUE</div>
             </div>
             <div class="font-pixel text-[8px] hidden md:flex gap-6">
-                <span class="text-gray-400">STATUS: <span class="text-white tracking-normal" id="hud-status">AQUECENDO...</span></span>
+                <span class="text-gray-400">STATUS: <span class="text-white tracking-normal" id="hud-status">AQUECENDO o forninho...</span></span>
             </div>
         </div>
     </nav>
@@ -189,8 +189,8 @@
     <section id="game-section">
         <div id="game-container">
             
-            <div id="start-overlay">
-                <button id="btn-iniciar" class="bg-red-600 hover:bg-red-500 text-white font-pixel text-[10px] md:text-sm py-4 px-8 rounded-full border-4 border-white shadow-lg animate-pulse transition-transform hover:scale-105">
+            <div id="start-overlay" onclick="iniciarAbertura()">
+                <button class="bg-red-600 hover:bg-red-500 text-white font-pixel text-[10px] md:text-sm py-4 px-8 rounded-full border-4 border-white shadow-lg animate-pulse transition-transform hover:scale-105 pointer-events-none">
                     ▶ INICIAR ABERTURA
                 </button>
             </div>
@@ -336,7 +336,6 @@
                 <div class="overflow-hidden">
                     <h3 class="font-pixel text-[8px] md:text-[10px] text-gray-400 mb-4 uppercase tracking-widest border-b border-gray-100 pb-2 overflow-hidden">Mensagens Recentes</h3>
                     <div id="lista-recados" class="space-y-4 max-h-80 overflow-y-auto pr-2 scrollbar-custom overflow-hidden">
-                        
                         <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
                             <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1 overflow-hidden">Vovó e Vovô</p>
@@ -361,7 +360,6 @@
     </footer>
 
     <script>
-        // --- CONTAGEM REGRESSIVA ---
         function updateCountdown() {
             const target = new Date('June 22, 2026 00:00:00').getTime();
             const now = new Date().getTime();
@@ -379,17 +377,14 @@
         updateCountdown();
         setInterval(updateCountdown, 1000 * 60 * 60);
 
-        // --- SISTEMA DE RECADOS ---
         const formRecado = document.getElementById('form-recado');
         const listaRecados = document.getElementById('lista-recados');
 
         if (formRecado) {
             formRecado.addEventListener('submit', function(e) {
                 e.preventDefault(); 
-                
                 const nome = document.getElementById('nome').value;
                 const mensagem = document.getElementById('mensagem').value;
-
                 const novoCard = document.createElement('div');
                 novoCard.className = 'bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden animate-pulse mt-4';
                 novoCard.innerHTML = `
@@ -397,13 +392,8 @@
                     <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1">${nome}</p>
                     <p class="text-sm md:text-base text-gray-600 font-sans-readable">${mensagem}</p>
                 `;
-
                 listaRecados.prepend(novoCard);
-
-                setTimeout(() => {
-                    novoCard.classList.remove('animate-pulse');
-                }, 1000);
-
+                setTimeout(() => { novoCard.classList.remove('animate-pulse'); }, 1000);
                 formRecado.reset();
             });
         }
@@ -416,31 +406,469 @@
         const questTitle = document.getElementById('quest-title');
         const dialoguePrompt = document.getElementById('dialogue-prompt');
         
-        const btnIniciar = document.getElementById('btn-iniciar');
-        const startOverlay = document.getElementById('start-overlay');
         const introAudio = document.getElementById('introAudio');
         const hudStatus = document.getElementById('hud-status');
         const desktopInstructions = document.getElementById('desktop-instructions');
         const mobileControls = document.getElementById('mobile-controls');
 
-        // Configurações do Mapa
         const TILE = 16;
         const COLS = 30; 
         const ROWS = 10; 
 
-        // Estados: WAIT_CLICK -> SHOOTING_STAR -> TORCHIC_RUN -> TITLE_SCREEN -> PLAYING
         let gameState = 'WAIT_CLICK'; 
         let introTimer = 0;
         let titleFlashTimer = 0;
         
         let starY = -50;
         let starX = 240; 
-        let torchicX = -50;
-        let torchicY = 160; 
-        let torchicFrame = 0;
+        let womanX = -50; 
+        let womanY = 160; 
 
         const map = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
-            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,1], 
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        const player = { x: 14, y: 5, color: '#ff7f00', dir: 'down', moving: false };
+        let isDialogueOpen = false;
+        let isTyping = false; 
+        let globalFrame = 0;
+
+        const interactions = {
+            "3,3": { 
+                title: "PRESENTES",
+                text: "NPC: 'Oi! Já viu as nossas listas oficiais? Tem Amazon e Mercado Livre ali embaixo!'", 
+                action: "#bag" 
+            },
+            "12,5": { 
+                title: "ENDEREÇO",
+                text: "PLACA: 'Bem-vindos! O Chá de Bebê será na Rua Pau do Café, 917. Desça a tela para ver.'", 
+                action: "#mapa" 
+            },
+            "22,5": { 
+                title: "RECADOS",
+                text: "AMIGA: 'Oi! Já deixou seu recadinho de amor para a Jaine e a Monique lerem? O mural fica ali embaixo!'", 
+                action: "#mensagens" 
+            }
+        };
+
+        const keys = {};
+
+        // === FORÇA O ÁUDIO A TOCAR AO CLICAR NO BOTÃO VIA JAVASCRIPT ===
+        window.iniciarAbertura = function() {
+            document.getElementById('start-overlay').style.display = 'none';
+            gameState = 'SHOOTING_STAR';
+            hudStatus.innerText = 'ABERTURA';
+            
+            if(introAudio) {
+                // Força o play no evento de clique
+                introAudio.volume = 0.5;
+                let playPromise = introAudio.play();
+                if(playPromise !== undefined) {
+                    playPromise.catch(e => console.log("Áudio bloqueado", e));
+                }
+            }
+        };
+
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (gameState === 'TITLE_SCREEN' && (e.key === 'Enter' || e.key === 'z')) {
+                startGame();
+            } else if (gameState === 'PLAYING' && (e.key === 'Enter' || e.key === 'z') && !player.moving) {
+                simulateInteraction();
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        function simulateKey(key, state) { keys[key] = state; }
+
+        function simulateInteraction() {
+            if (gameState === 'TITLE_SCREEN') {
+                startGame();
+                return;
+            }
+            if (gameState !== 'PLAYING') return;
+            if (isTyping) return; 
+
+            if (isDialogueOpen) {
+                closeDialogue();
+            } else {
+                checkInteraction();
+            }
+        }
+
+        function update() {
+            globalFrame++;
+
+            if (gameState === 'SHOOTING_STAR') {
+                introTimer++;
+                starY += 4;
+                if (introTimer > 70) {
+                    gameState = 'WOMAN_WALK';
+                    introTimer = 0;
+                    womanX = -50;
+                }
+            }
+            else if (gameState === 'WOMAN_WALK') {
+                introTimer++;
+                if (womanX < canvas.width / 2) { 
+                    womanX += 2; 
+                } 
+                else if (introTimer > 200) { 
+                    gameState = 'TITLE_SCREEN';
+                }
+            }
+            else if (gameState === 'TITLE_SCREEN') {
+                titleFlashTimer++;
+            }
+            else if (gameState === 'PLAYING') {
+                if (isDialogueOpen || player.moving) return;
+
+                let dx = 0, dy = 0;
+                if (keys['ArrowUp']) { dy = -1; player.dir = 'up'; }
+                else if (keys['ArrowDown']) { dy = 1; player.dir = 'down'; }
+                else if (keys['ArrowLeft']) { dx = -1; player.dir = 'left'; }
+                else if (keys['ArrowRight']) { dx = 1; player.dir = 'right'; }
+
+                if (dx !== 0 || dy !== 0) {
+                    const targetX = player.x + dx;
+                    const targetY = player.y + dy;
+                    if (map[targetY] && map[targetY][targetX] === 0) {
+                        player.x = targetX;
+                        player.y = targetY;
+                        player.moving = true;
+                        setTimeout(() => player.moving = false, 120); 
+                    }
+                }
+            }
+        }
+
+        function checkInteraction() {
+            let tx = player.x, ty = player.y;
+            if (player.dir === 'up') ty--;
+            if (player.dir === 'down') ty++;
+            if (player.dir === 'left') tx--;
+            if (player.dir === 'right') tx++;
+
+            const key = `${tx},${ty}`;
+            if (interactions[key]) {
+                showDialogue(interactions[key]);
+            }
+        }
+
+        function showDialogue(data) {
+            isDialogueOpen = true;
+            isTyping = true; 
+            dialogueBox.style.display = 'block';
+            
+            if(dialoguePrompt) dialoguePrompt.classList.add('hidden'); 
+            
+            dialogueText.innerHTML = "";
+            questTitle.innerText = data.title;
+            currentAction = data.action;
+            
+            let i = 0;
+            const typeSpeed = 25; 
+
+            function type() {
+                if (i < data.text.length) {
+                    dialogueText.innerHTML += data.text.charAt(i);
+                    i++;
+                    setTimeout(type, typeSpeed);
+                } else {
+                    isTyping = false; 
+                    if(dialoguePrompt) dialoguePrompt.classList.remove('hidden'); 
+                }
+            }
+            type();
+        }
+
+        function closeDialogue() {
+            isDialogueOpen = false;
+            dialogueBox.style.display = 'none';
+            if (currentAction) {
+                const el = document.querySelector(currentAction);
+                if(el) el.scrollIntoView({ behavior: 'smooth' });
+                currentAction = null;
+            }
+        }
+
+        function startGame() {
+            gameState = 'PLAYING';
+            canvas.height = 160; 
+            
+            if (introAudio) introAudio.pause();
+            
+            if (desktopInstructions) desktopInstructions.style.opacity = '1';
+            if (mobileControls) mobileControls.style.opacity = '1';
+            if (hudStatus) hudStatus.innerText = 'ROTA 2026';
+        }
+
+        function drawPregnantSilhouette(ctx, x, y, scale = 1, isWalking = false, direction = 'right') {
+            ctx.save();
+            ctx.translate(x, y);
+            if(direction === 'left') ctx.scale(-1, 1);
+            
+            let bounce = isWalking ? Math.sin(globalFrame * 0.3) * 2 * scale : 0;
+            let legSwing = isWalking ? Math.sin(globalFrame * 0.3) * 6 * scale : 0;
+
+            ctx.fillStyle = '#000'; 
+            ctx.strokeStyle = '#000';
+            
+            // Cabeça
+            ctx.beginPath();
+            ctx.arc(0, -22 * scale + bounce, 5 * scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Boné de Treinadora (Estilo Ash)
+            ctx.beginPath();
+            ctx.arc(0, -23 * scale + bounce, 5 * scale, Math.PI, 0); // topo do boné
+            ctx.fill();
+            ctx.fillRect(0, -23 * scale + bounce, 8 * scale, 2 * scale); // aba do boné
+
+            // Vestido / Barriga
+            ctx.beginPath();
+            ctx.moveTo(-3 * scale, -15 * scale + bounce); 
+            ctx.lineTo(3 * scale, -15 * scale + bounce);  
+            ctx.lineTo(11 * scale, -2 * scale + bounce);  
+            ctx.lineTo(12 * scale, 5 * scale + bounce);   
+            ctx.lineTo(8 * scale, 15 * scale + bounce);   
+            ctx.lineTo(-6 * scale, 15 * scale + bounce);  
+            ctx.fill();
+
+            // Pernas
+            ctx.lineWidth = 2.5 * scale;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(-2 * scale, 15 * scale + bounce);
+            ctx.lineTo(-2 * scale - legSwing, 24 * scale + bounce);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(3 * scale, 15 * scale + bounce);
+            ctx.lineTo(3 * scale + legSwing, 24 * scale + bounce);
+            ctx.stroke();
+
+            // Braço
+            ctx.beginPath();
+            ctx.moveTo(1 * scale, -14 * scale + bounce); 
+            ctx.lineTo(6 * scale, -6 * scale + bounce);  
+            ctx.lineTo(10 * scale, 2 * scale + bounce);  
+            ctx.stroke();
+
+            ctx.restore();
+
+            // --- COMPANHEIRO BABY (Mini Pikachu/Pokémon) ---
+            let compX = x - 30 * scale; 
+            let compBounce = isWalking ? Math.sin(globalFrame * 0.5) * 3 * scale : 0;
+            
+            ctx.save();
+            ctx.translate(compX, y);
+            if(direction === 'left') {
+                ctx.scale(-1, 1);
+                ctx.translate(-60 * scale, 0); // Ajuste se for pra esquerda
+            }
+            
+            ctx.fillStyle = '#000';
+            // Corpo baby
+            ctx.beginPath();
+            ctx.ellipse(0, 20 * scale + compBounce, 6 * scale, 6 * scale, 0, 0, Math.PI*2);
+            ctx.fill();
+            // Orelhas Pikachu
+            ctx.beginPath();
+            ctx.moveTo(-2 * scale, 15 * scale + compBounce);
+            ctx.lineTo(-8 * scale, 5 * scale + compBounce);
+            ctx.lineTo(2 * scale, 15 * scale + compBounce);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(2 * scale, 15 * scale + compBounce);
+            ctx.lineTo(8 * scale, 5 * scale + compBounce);
+            ctx.lineTo(6 * scale, 15 * scale + compBounce);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function draw() {
+            if (gameState === 'WAIT_CLICK') {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'SHOOTING_STAR') {
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px "Press Start 2P", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("JAINE & FAMILY", canvas.width / 2, canvas.height / 2 - 10);
+                ctx.font = '10px "Press Start 2P", monospace';
+                ctx.fillText("Presents", canvas.width / 2, canvas.height / 2 + 15);
+                
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(starX, starY, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(starX, starY); ctx.lineTo(starX, starY - 50); ctx.stroke();
+                
+                if (introTimer > 55) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${(introTimer - 55) / 10})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            else if (gameState === 'WOMAN_WALK') {
+                let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, "#4a0404"); 
+                gradient.addColorStop(1, "#041c4a"); 
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                let isWalking = womanX < canvas.width / 2;
+                drawPregnantSilhouette(ctx, womanX, canvas.height / 2 + 10, 2, isWalking, 'right');
+            }
+            else if (gameState === 'TITLE_SCREEN') {
+                let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, "#4a0404"); 
+                gradient.addColorStop(1, "#041c4a"); 
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.textAlign = 'center';
+                drawPregnantSilhouette(ctx, canvas.width / 2, canvas.height / 2 + 10, 2.5, false, 'right');
+
+                ctx.font = '24px "Press Start 2P", monospace';
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = '#2563eb'; 
+                ctx.strokeText("JAINE-MONIQUE", canvas.width / 2, canvas.height / 2 - 40);
+                ctx.fillStyle = '#facc15'; 
+                ctx.fillText("JAINE-MONIQUE", canvas.width / 2, canvas.height / 2 - 40);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px "Press Start 2P", monospace';
+                ctx.fillText("Version", canvas.width / 2 + 70, canvas.height / 2 - 15);
+
+                if (Math.floor(titleFlashTimer / 30) % 2 === 0) {
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '12px "Press Start 2P", monospace';
+                    ctx.fillText("APERTE [ENTER] OU [A]", canvas.width / 2, canvas.height / 2 + 100);
+                }
+                
+                ctx.fillStyle = '#aaa';
+                ctx.font = '8px "Press Start 2P", monospace';
+                ctx.fillText("© 2026 GAME FREAK • MONIQUE CORP.", canvas.width / 2, canvas.height - 20);
+            }
+            else if (gameState === 'PLAYING') {
+                ctx.fillStyle = '#202025';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const tile = map[y][x];
+                        const px = x * TILE;
+                        const py = y * TILE;
+
+                        if (tile === 0) {
+                            ctx.fillStyle = '#fce7c6'; 
+                            ctx.fillRect(px, py, TILE, TILE);
+                            if ((x + y) % 3 === 0) {
+                                 ctx.fillStyle = 'rgba(0,0,0,0.03)';
+                                 ctx.fillRect(px + 4, py + 4, 2, 2);
+                            }
+                        } 
+                        else if (tile === 1) {
+                            ctx.fillStyle = '#1e3a29'; 
+                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.fillStyle = '#2f855a'; 
+                            ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+                            ctx.fillStyle = '#48bb78'; 
+                            ctx.fillRect(px + 4, py + 4, 4, 4);
+                        }
+                        else if (tile === 5) {
+                            ctx.fillStyle = '#3b82f6';
+                            ctx.fillRect(px, py, TILE, TILE);
+                            if (Math.floor(globalFrame / 30) % 2 === 0) {
+                                ctx.fillStyle = '#93c5fd'; ctx.fillRect(px + 2, py + 4, 6, 2);
+                            } else {
+                                ctx.fillStyle = '#93c5fd'; ctx.fillRect(px + 8, py + 10, 6, 2);
+                            }
+                        }
+                        else if ([2, 3, 4].includes(tile)) {
+                            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                            ctx.beginPath(); ctx.ellipse(px + 8, py + 14, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+                            if (tile === 2) ctx.fillStyle = '#3b82f6'; 
+                            if (tile === 3) ctx.fillStyle = '#b45309'; 
+                            if (tile === 4) ctx.fillStyle = '#ec4899'; 
+
+                            if (tile === 3) {
+                                 ctx.fillRect(px + 2, py + 2, 12, 10);
+                                 ctx.fillStyle = '#000'; ctx.fillRect(px + 6, py + 12, 4, 4);
+                            } else {
+                                 ctx.fillRect(px + 3, py + 2, 10, 12);
+                                 ctx.fillStyle = '#fff'; ctx.fillRect(px+4, py+5, 2, 2); ctx.fillRect(px+9, py+5, 2, 2);
+                            }
+
+                            const floatY = Math.sin(globalFrame / 15) * 2;
+                            if (tile === 4) { ctx.fillStyle = '#ec4899'; } else { ctx.fillStyle = '#10b981'; }
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(px + 8, py - 6 + floatY);
+                            ctx.lineTo(px + 5, py - 10 + floatY);
+                            ctx.lineTo(px + 11, py - 10 + floatY);
+                            ctx.fill();
+                        }
+                    }
+                }
+
+                const px = player.x * TILE;
+                const py = player.y * TILE;
+
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath(); 
+                ctx.ellipse(px + 8, py + 14, 6, 3, 0, 0, Math.PI * 2); 
+                ctx.fill();
+
+                ctx.fillStyle = player.color;
+                ctx.fillRect(px + 3, py + 4, 10, 10);
+
+                ctx.fillStyle = '#ef4444'; 
+                ctx.fillRect(px + 3, py + 1, 10, 4); 
+                ctx.fillRect(px + 6, py - 2, 4, 3); 
+
+                ctx.fillStyle = '#fff'; 
+                if(player.dir === 'right') { 
+                    ctx.fillRect(px + 8, py + 6, 3, 3); 
+                    ctx.fillStyle='#000'; ctx.fillRect(px + 10, py + 7, 1, 1); 
+                } else if(player.dir === 'left') { 
+                    ctx.fillRect(px + 5, py + 6, 3, 3); 
+                    ctx.fillStyle='#000'; ctx.fillRect(px + 5, py + 7, 1, 1); 
+                } else { 
+                    ctx.fillRect(px + 4, py + 6, 2, 2); ctx.fillRect(px + 10, py + 6, 2, 2);
+                    ctx.fillStyle='#000'; ctx.fillRect(px + 5, py + 6, 1, 1); ctx.fillRect(px + 10, py + 6, 1, 1);
+                }
+                
+                ctx.fillStyle = '#facc15';
+                if(player.dir === 'down') ctx.fillRect(px + 7, py + 9, 2, 2);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
