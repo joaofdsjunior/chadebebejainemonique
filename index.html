@@ -42,19 +42,31 @@
 
         #game-container {
             width: 100%;
+            max-width: 960px;
             position: relative;
             display: flex;
             justify-content: center;
+            background-color: #000;
         }
 
         canvas {
             display: block;
             image-rendering: pixelated;
             width: 100%;
-            max-width: 960px;
-            aspect-ratio: 3 / 2; /* Proporção melhor para a abertura */
-            background-color: #000; 
+            height: auto;
+            background-color: #000;
             object-fit: contain;
+        }
+
+        /* Overlay do Botão Iniciar */
+        #start-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
         }
 
         /* Dialog Box Style */
@@ -137,19 +149,11 @@
         .d-action:active { transform: scale(0.95); }
 
         @media (max-width: 768px) {
-            .mobile-controls-wrapper {
-                display: flex; 
-            }
-            canvas {
-                height: auto; 
-            }
-            #game-dialogue {
-                bottom: 10px; 
-                font-size: 8px; 
-            }
+            .mobile-controls-wrapper { display: flex; }
+            #game-dialogue { bottom: 10px; font-size: 8px; }
         }
 
-        /* Estilo das Caixas de Informação */
+        /* Caixas de Informação */
         .gba-box {
             background: #fff;
             border: 4px solid #4a5568;
@@ -168,7 +172,7 @@
 </head>
 <body class="flex flex-col items-center">
 
-    <audio id="introAudio" src="http://googleusercontent.com/file_content/0" preload="auto"></audio>
+    <audio id="introAudio" src="intro.mp3" preload="auto"></audio>
 
     <nav class="w-full bg-slate-900 text-white sticky top-0 z-50 py-3 px-4 md:px-6 shadow-xl border-b-4 border-slate-700">
         <div class="w-full flex justify-between items-center max-w-5xl mx-auto">
@@ -177,14 +181,23 @@
                 <div class="font-pixel text-[8px] md:text-[10px] text-orange-400 tracking-widest">CHÁ DA JAINE-MONIQUE</div>
             </div>
             <div class="font-pixel text-[8px] hidden md:flex gap-6">
-                <span class="text-gray-400">STATUS: <span class="text-white tracking-normal" id="hud-status">ABERTURA</span></span>
+                <span class="text-gray-400">STATUS: <span class="text-white tracking-normal" id="hud-status">AQUECENDO...</span></span>
             </div>
         </div>
     </nav>
 
     <section id="game-section">
         <div id="game-container">
-            <canvas id="gameCanvas" width="480" height="320"></canvas> <div id="game-dialogue">
+            
+            <div id="start-overlay">
+                <button id="btn-iniciar" class="bg-red-600 hover:bg-red-500 text-white font-pixel text-[10px] md:text-sm py-4 px-8 rounded-full border-4 border-white shadow-lg animate-pulse transition-transform hover:scale-105">
+                    ▶ INICIAR ABERTURA
+                </button>
+            </div>
+
+            <canvas id="gameCanvas" width="480" height="320"></canvas>
+            
+            <div id="game-dialogue">
                 <span class="block text-red-600 text-[8px] mb-2 border-b border-gray-300 pb-1 font-bold" id="quest-title">MENSAGEM</span>
                 <p id="dialogue-text"></p>
                 <div id="dialogue-prompt" class="absolute bottom-2 right-2 text-red-500 animate-bounce hidden">▼</div>
@@ -202,7 +215,7 @@
                 <div class="d-btn d-right" ontouchstart="simulateKey('ArrowRight', true)" ontouchend="simulateKey('ArrowRight', false)">▶</div>
                 <div class="d-btn d-down" ontouchstart="simulateKey('ArrowDown', true)" ontouchend="simulateKey('ArrowDown', false)">▼</div>
             </div>
-            <div class="d-action" id="mobile-action-btn" ontouchstart="simulateInteraction()">A</div>
+            <div class="d-action" id="mobile-action-btn" ontouchstart="simulateInteraction()" onclick="simulateInteraction()">A</div>
         </div>
     </section>
 
@@ -273,7 +286,6 @@
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 overflow-hidden">
-                    
                     <a href="#" target="_blank" class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FF9900] transition-colors shadow-sm text-center flex flex-col items-center overflow-hidden">
                         <div class="h-12 md:h-14 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" class="h-6 md:h-8 object-contain">
@@ -291,7 +303,6 @@
                         <p class="text-xs md:text-sm text-gray-600 leading-relaxed font-sans-readable mb-6">Fraldas, itens de higiene e opções variadas para a bebê.</p>
                         <span class="inline-block bg-[#FFE600] text-[#2D3277] px-5 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold font-sans-readable uppercase shadow-sm">Acessar Lista</span>
                     </a>
-
                 </div>
             </div>
         </section>
@@ -303,7 +314,7 @@
                 </h2>
                 
                 <p class="font-retro text-xl md:text-2xl text-gray-600 mb-6 md:mb-8 leading-relaxed overflow-hidden">
-                    Deixe um recadinho! Essas palavras serão guardadas com muito carinho e amor na memória da família.
+                    Essas palavras serão guardadas com muito carinho e amor na memória da família.
                 </p>
 
                 <form id="form-recado" class="bg-pink-50/50 p-4 md:p-6 rounded-xl border border-pink-200 mb-8 overflow-hidden">
@@ -313,7 +324,7 @@
                     </div>
                     <div class="mb-6 overflow-hidden">
                         <label class="block text-pink-900 font-bold mb-2 font-sans-readable text-xs md:text-sm uppercase tracking-wide overflow-hidden" for="mensagem">Qual carinho quer escrever para Jaine e Monique?</label>
-                        <textarea id="mensagem" required rows="4" class="w-full p-3 rounded-lg border border-pink-300 font-sans-readable focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm" placeholder="Escreva aqui seus desejos para a bebê e para a mamãe..."></textarea>
+                        <textarea id="mensagem" required rows="4" class="w-full p-3 rounded-lg border border-pink-300 font-sans-readable focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm" placeholder="Escreva aqui seus desejos..."></textarea>
                     </div>
                     <div class="text-right overflow-hidden">
                         <button type="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 md:px-8 rounded-full transition-transform hover:scale-105 shadow-md font-sans-readable uppercase tracking-wide w-full md:w-auto text-sm md:text-base">
@@ -334,4 +345,102 @@
 
                         <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
-                            <p class="font-bold text-pink-600 font-sans-readable text-base md:
+                            <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1 overflow-hidden">Titios Corujas</p>
+                            <p class="text-sm md:text-base text-gray-600 font-sans-readable overflow-hidden leading-relaxed">Jaine, você será uma mãe incrível! Já compramos várias roupinhas para essa princesa maravilhosa.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full py-8 text-center bg-black text-gray-500 font-pixel text-[6px] md:text-[8px] border-t border-gray-800 px-4 overflow-hidden">
+        DESENVOLVIDO COM CARINHO PARA A JAINE-MONIQUE E FAMÍLIA • 2026
+    </footer>
+
+    <script>
+        // --- CONTAGEM REGRESSIVA ---
+        function updateCountdown() {
+            const target = new Date('June 22, 2026 00:00:00').getTime();
+            const now = new Date().getTime();
+            const diff = target - now;
+            const container = document.getElementById('countdown-timer');
+
+            if (diff <= 0) {
+                container.innerHTML = '<span class="text-green-400">A BEBÊ CHEGOU!</span>';
+                return;
+            }
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            container.innerHTML = `${d} DIAS e ${h} HORAS`;
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000 * 60 * 60);
+
+        // --- SISTEMA DE RECADOS ---
+        const formRecado = document.getElementById('form-recado');
+        const listaRecados = document.getElementById('lista-recados');
+
+        if (formRecado) {
+            formRecado.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                
+                const nome = document.getElementById('nome').value;
+                const mensagem = document.getElementById('mensagem').value;
+
+                const novoCard = document.createElement('div');
+                novoCard.className = 'bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden animate-pulse mt-4';
+                novoCard.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
+                    <p class="font-bold text-pink-600 font-sans-readable text-base md:text-lg mb-1">${nome}</p>
+                    <p class="text-sm md:text-base text-gray-600 font-sans-readable">${mensagem}</p>
+                `;
+
+                listaRecados.prepend(novoCard);
+
+                setTimeout(() => {
+                    novoCard.classList.remove('animate-pulse');
+                }, 1000);
+
+                formRecado.reset();
+            });
+        }
+
+        /* --- ENGINE RPG & ABERTURA --- */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const dialogueBox = document.getElementById('game-dialogue');
+        const dialogueText = document.getElementById('dialogue-text');
+        const questTitle = document.getElementById('quest-title');
+        const dialoguePrompt = document.getElementById('dialogue-prompt');
+        
+        const btnIniciar = document.getElementById('btn-iniciar');
+        const startOverlay = document.getElementById('start-overlay');
+        const introAudio = document.getElementById('introAudio');
+        const hudStatus = document.getElementById('hud-status');
+        const desktopInstructions = document.getElementById('desktop-instructions');
+        const mobileControls = document.getElementById('mobile-controls');
+
+        // Configurações do Mapa
+        const TILE = 16;
+        const COLS = 30; 
+        const ROWS = 10; 
+
+        // Estados: WAIT_CLICK -> SHOOTING_STAR -> TORCHIC_RUN -> TITLE_SCREEN -> PLAYING
+        let gameState = 'WAIT_CLICK'; 
+        let introTimer = 0;
+        let titleFlashTimer = 0;
+        
+        let starY = -50;
+        let starX = 240; 
+        let torchicX = -50;
+        let torchicY = 160; 
+        let torchicFrame = 0;
+
+        const map = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,1],
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
