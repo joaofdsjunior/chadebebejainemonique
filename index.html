@@ -264,6 +264,7 @@
                     <p class="font-bold text-xl md:text-2xl text-gray-800 font-sans-readable">Local: Salão do Prédio</p>
                     <p class="font-retro text-xl md:text-2xl text-gray-700 leading-relaxed">
                         <strong class="text-orange-600">Endereço:</strong> Rua Pau do Café, 917 - Diadema<br>
+                        <strong class="text-orange-600">Data:</strong> 04/04<br>
                         <strong class="text-orange-600">Horário:</strong> A partir das 16h30
                     </p>
                     <p class="text-gray-500 text-sm md:text-lg font-sans-readable mt-2 leading-relaxed">
@@ -286,7 +287,7 @@
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 overflow-hidden">
-                    <a href="https://www.amazon.com.br/baby-reg/jaineferreira-sousa-junho-2026-sopaulo/1DN861IP6YM52" target="_blank" class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FF9900] transition-colors shadow-sm text-center flex flex-col items-center overflow-hidden">
+                    <div class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FF9900] transition-colors shadow-sm text-center flex flex-col items-center overflow-hidden">
                         <div class="h-12 md:h-14 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" class="h-6 md:h-8 object-contain">
                         </div>
@@ -302,9 +303,9 @@
                                 Compartilhar
                             </button>
                         </div>
-                    </a>
+                    </div>
 
-                    <a href="https://www.mercadolivre.com.br/mais-vendidos/MLB1384" target="_blank" class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FFE600] transition-colors shadow-sm text-center flex flex-col items-center overflow-hidden">
+                    <div class="group relative bg-white p-6 md:p-8 rounded-xl border-2 border-gray-200 hover:border-[#FFE600] transition-colors shadow-sm text-center flex flex-col items-center overflow-hidden">
                         <div class="h-12 md:h-14 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform bg-[#FFE600] rounded-full w-14 h-14 md:w-16 md:h-16 shadow-inner overflow-hidden">
                             <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolivre/logo__small@2x.png" alt="Mercado Livre" class="h-8 md:h-10 object-contain">
                         </div>
@@ -320,7 +321,7 @@
                                 Compartilhar
                             </button>
                         </div>
-                    </a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -366,6 +367,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </section>
 
@@ -430,7 +432,6 @@
                 btnSubmit.innerHTML = 'Enviando... ⏳';
                 btnSubmit.disabled = true;
 
-                // ENVIO PARA O WEB3FORMS (Com a chave inserida)
                 fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
                     headers: {
@@ -446,7 +447,6 @@
                 })
                 .then(async (response) => {
                     if (response.status == 200) {
-                        // Sucesso: Cria o card na tela
                         const novoCard = document.createElement('div');
                         novoCard.className = 'bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden animate-pulse mt-4';
                         novoCard.innerHTML = `
@@ -468,7 +468,6 @@
                     alert("Ops! Algo deu errado na sua conexão.");
                 })
                 .finally(() => {
-                    // Volta o botão ao normal
                     btnSubmit.innerHTML = textoOriginalBtn;
                     btnSubmit.disabled = false;
                 });
@@ -701,18 +700,15 @@
             ctx.fillStyle = '#000'; 
             ctx.strokeStyle = '#000';
             
-            // Cabeça
             ctx.beginPath();
             ctx.arc(0, -22 * scale + bounce, 5 * scale, 0, Math.PI * 2);
             ctx.fill();
 
-            // Boné de Treinadora
             ctx.beginPath();
             ctx.arc(0, -23 * scale + bounce, 5 * scale, Math.PI, 0); 
             ctx.fill();
             ctx.fillRect(0, -23 * scale + bounce, 8 * scale, 2 * scale); 
 
-            // Vestido / Barriga
             ctx.beginPath();
             ctx.moveTo(-3 * scale, -15 * scale + bounce); 
             ctx.lineTo(3 * scale, -15 * scale + bounce);  
@@ -722,7 +718,6 @@
             ctx.lineTo(-6 * scale, 15 * scale + bounce);  
             ctx.fill();
 
-            // Pernas
             ctx.lineWidth = 2.5 * scale;
             ctx.lineCap = "round";
             ctx.beginPath();
@@ -735,7 +730,6 @@
             ctx.lineTo(3 * scale + legSwing, 24 * scale + bounce);
             ctx.stroke();
 
-            // Braço
             ctx.beginPath();
             ctx.moveTo(1 * scale, -14 * scale + bounce); 
             ctx.lineTo(6 * scale, -6 * scale + bounce);  
@@ -744,7 +738,6 @@
 
             ctx.restore();
 
-            // --- Mini Pikachu/Pokémon ---
             let compX = x - 30 * scale; 
             let compBounce = isWalking ? Math.sin(globalFrame * 0.5) * 3 * scale : 0;
             
